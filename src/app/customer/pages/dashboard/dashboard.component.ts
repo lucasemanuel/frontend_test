@@ -3,13 +3,13 @@ import { MenuItem } from 'primeng/api';
 import { Subscription, debounceTime } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// import { ChartModule } from 'primeng/chart';
 import { MenuModule } from 'primeng/menu';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { StyleClassModule } from 'primeng/styleclass';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { LayoutService } from '../../../shared/layout/service/app.layout.service';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
     templateUrl: './dashboard.component.html',
@@ -22,10 +22,13 @@ import { LayoutService } from '../../../shared/layout/service/app.layout.service
       TableModule,
       StyleClassModule,
       PanelMenuModule,
-      ButtonModule
-  ],
+      ButtonModule,
+      DialogModule,
+    ],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+
+    dialogRegisterTransactionVisible = false;
 
     items!: MenuItem[];
 
