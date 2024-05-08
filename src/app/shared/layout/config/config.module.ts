@@ -9,17 +9,18 @@ import { AppConfigComponent } from './app.config.component';
 
 @NgModule({
     imports: [
+        CommonModule,
         FormsModule,
         SidebarModule,
         RadioButtonModule,
         ButtonModule,
-        InputSwitchModule,
+        InputSwitchModule
     ],
     declarations: [
-        // AppConfigComponent
+        AppConfigComponent
     ],
     exports: [
-        // AppConfigComponent
+        AppConfigComponent
     ]
 })
 export class AppConfigModule { }

@@ -1,14 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { LayoutService } from '../service/app.layout.service';
 import { MenuService } from '../app.menu.service';
-import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-config',
-    standalone: true,
-    imports: [
-      CommonModule
-    ],
     templateUrl: './app.config.component.html',
 })
 export class AppConfigComponent {

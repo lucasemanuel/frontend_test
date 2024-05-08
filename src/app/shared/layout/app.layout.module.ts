@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -16,7 +17,6 @@ import { AppFooterComponent } from './app.footer.component';
 import { AppConfigModule } from './config/config.module';
 import { AppSidebarComponent } from "./app.sidebar.component";
 import { AppLayoutComponent } from "./app.layout.component";
-import { CommonModule } from '@angular/common';
 
 @NgModule({
     declarations: [
@@ -28,9 +28,10 @@ import { CommonModule } from '@angular/common';
         AppLayoutComponent,
     ],
     imports: [
+        BrowserModule,
         FormsModule,
-        // HttpClientModule,
-        // BrowserAnimationsModule,
+        HttpClientModule,
+        BrowserAnimationsModule,
         InputTextModule,
         SidebarModule,
         BadgeModule,
@@ -38,8 +39,7 @@ import { CommonModule } from '@angular/common';
         InputSwitchModule,
         RippleModule,
         RouterModule,
-        AppConfigModule,
-        CommonModule
+        AppConfigModule
     ],
     exports: [AppLayoutComponent]
 })
