@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MenuItem } from 'primeng/api';
-import { Subscription, debounceTime } from 'rxjs';
+import { Subscription, debounceTime, throwError } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuModule } from 'primeng/menu';
@@ -10,6 +10,12 @@ import { StyleClassModule } from 'primeng/styleclass';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { LayoutService } from '../../../shared/layout/service/app.layout.service';
 import { DialogModule } from 'primeng/dialog';
+import { UserService } from '../../services/user.service';
+import { AccountService } from '../../services/account.service';
+import { TransactionService } from '../../services/transactions.service';
+import { InputTextModule } from 'primeng/inputtext';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
     templateUrl: './dashboard.component.html',
@@ -17,108 +23,94 @@ import { DialogModule } from 'primeng/dialog';
     imports: [
       CommonModule,
       FormsModule,
-      // ChartModule,
       MenuModule,
       TableModule,
       StyleClassModule,
       PanelMenuModule,
       ButtonModule,
       DialogModule,
+      InputTextModule,
+      RadioButtonModule
     ],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  user$ = this.userService.user$;
+  dialogRegisterTransactionVisible = false;
+  dialogListTransactionsVisible = false;
+  accounts = <any>[];
+  transactions = <any>[];
+  transactionType: number = 0;
+  transactionAmount: number = 0;
+  error = "";
+  accountNumberSelected = "";
 
-    dialogRegisterTransactionVisible = false;
+  account: any;
 
-    items!: MenuItem[];
+  constructor(
+    public layoutService: LayoutService,
+    private userService: UserService,
+    private accountService: AccountService,
+    private transactionService: TransactionService
+  ) {
+  }
 
-    products!: any;
+  ngOnInit() {
+    this.userService.getInfo().subscribe();
+    this.user$.subscribe(user => {
+      if (user.role === 'Admin') {
+        this.accountService.getAccounts().subscribe({
+          next: response => this.accounts = response
+        })
+      } else {
+        this.userService.getAccount().subscribe(response => {
+          this.account = response
+          this.listTransactions(this.account?.accountNumber)
+      });
+      }
+    })
+  }
 
-    chartData: any;
+  ngOnDestroy() {
+  }
 
-    chartOptions: any;
+  deleteAccount(accountNumber: string)
+  {
+    this.accountService.deleteAccount(accountNumber).subscribe({
+      next: () => window.location.reload()
+    });
+  }
 
-    subscription!: Subscription;
+  listTransactions(accountNumber: string)
+  {
+    this.transactionService.listTransactions(accountNumber).subscribe( response => {
+        this.transactions = response.map((transaction: any) => ({
+          ...transaction,
+          createdAt: new Date(transaction.createdAt)
+        }))
+      }
+    )
+  }
 
-    constructor(public layoutService: LayoutService) {
-        this.subscription = this.layoutService.configUpdate$
-        .pipe(debounceTime(25))
-        .subscribe((config) => {
-            this.initChart();
-        });
+  registerTransaction()
+  {
+    if (this.transactionAmount < 0 ) {
+      this.error = "Valor deve ser positivo."
+      return;
     }
 
-    ngOnInit() {
-        this.initChart();
+    this.transactionService.registerTransaction(this.transactionAmount, this.accountNumberSelected, this.transactionType).subscribe({
+      next: () => window.location.reload(),
+      error: (error: any) => {
+        if (error instanceof HttpErrorResponse && error.status === 400)
+          this.error = error.error
+        return throwError(() => error);
+      }
+    });
+  }
 
-        this.items = [
-            { label: 'Add New', icon: 'pi pi-fw pi-plus' },
-            { label: 'Remove', icon: 'pi pi-fw pi-minus' }
-        ];
-    }
-
-    initChart() {
-        const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--text-color');
-        const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
-        const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
-
-        this.chartData = {
-            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-            datasets: [
-                {
-                    label: 'First Dataset',
-                    data: [65, 59, 80, 81, 56, 55, 40],
-                    fill: false,
-                    backgroundColor: documentStyle.getPropertyValue('--bluegray-700'),
-                    borderColor: documentStyle.getPropertyValue('--bluegray-700'),
-                    tension: .4
-                },
-                {
-                    label: 'Second Dataset',
-                    data: [28, 48, 40, 19, 86, 27, 90],
-                    fill: false,
-                    backgroundColor: documentStyle.getPropertyValue('--green-600'),
-                    borderColor: documentStyle.getPropertyValue('--green-600'),
-                    tension: .4
-                }
-            ]
-        };
-
-        this.chartOptions = {
-            plugins: {
-                legend: {
-                    labels: {
-                        color: textColor
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        color: surfaceBorder,
-                        drawBorder: false
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        color: surfaceBorder,
-                        drawBorder: false
-                    }
-                }
-            }
-        };
-    }
-
-    ngOnDestroy() {
-        if (this.subscription) {
-            this.subscription.unsubscribe();
-        }
-    }
+  openDialogRegisterTrasaction(accountNumber: string)
+  {
+    this.dialogRegisterTransactionVisible = true;
+    this.accountNumberSelected = accountNumber;
+  }
 }
